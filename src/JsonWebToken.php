@@ -283,6 +283,23 @@ class JsonWebToken
 		}
 	}
 
+	/**
+	 * Returns the time at which the JWT was issued.
+	 * @return string
+	 */
+	public function getIssuedAt($format = 'Y-m-d H:i:s')
+	{
+		if(isset($this->payload['iat']))
+		{
+			$iat = (int)$this->payload['iat'];
+			return date($format, $iat);
+		}
+		else
+		{
+			return null;
+		}
+	}
+
 
 	/**
 	 * Sets the subject of JWT (paylod[sub]).
