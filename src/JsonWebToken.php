@@ -65,7 +65,6 @@ class JsonWebToken
         self::ALG_RS512 => array('openssl', 'SHA512'),
     );
 
-
 	/**
 	 * Header
 	 * @var array
@@ -169,7 +168,6 @@ class JsonWebToken
 			return $this;
 		}
 	}
-
 
 	/**
 	 * Returns date and time on which the JWT will start to be accepted for processing (payload[nbf]).
@@ -300,7 +298,6 @@ class JsonWebToken
 		}
 	}
 
-
 	/**
 	 * Sets the subject of JWT (paylod[sub]).
 	 * @param string $subject
@@ -412,8 +409,6 @@ class JsonWebToken
 			return null;
 	}
 
-
-
 	/**
 	 * Encodes a string into base64 by RFC3548.<br />
 	 * Symbol "+" replace to "-". Symbol "/" replace to "_".
@@ -422,7 +417,7 @@ class JsonWebToken
      * @param string $input
      * @return string
      */
-    private function base64Encode($input)
+    private function base64urlEncode($input)
     {
         $base64 = base64_encode($input);
 		if($base64 === false)
@@ -436,12 +431,11 @@ class JsonWebToken
     }
 
     /**
-     * Decodes a base64 string from encoded string with base64Encode().
-	 *
+     * Decodes a base64 string from encoded string with base64urlEncode().
      * @param string $input an encoded string
      * @return string A decoded string
      */
-    private function base64Decode($input)
+    private function base64urlDecode($input)
     {
         $remainder = strlen($input) % 4;
         if ($remainder)
@@ -462,10 +456,8 @@ class JsonWebToken
 		}
     }
 
-
     /**
-     * Encodes an array into a JSON string
-     *
+     * Encodes an array into a JSON string.
      * @param array $arr input array
      * @return string JSON string
 	 * @throws JsonWebTokenException
@@ -485,10 +477,8 @@ class JsonWebToken
 		}
     }
 
-
     /**
-     * Decodes a JSON string into an associative array
-     *
+     * Decodes a JSON string into an associative array.
      * @param string $json JSON string
      * @return array
      * @throws JsonWebTokenException
@@ -508,7 +498,7 @@ class JsonWebToken
     }
 
 	/**
-	 * Splits the token into segments
+	 * Splits the token into segments.
 	 * @param string $jwt JWT token
 	 * @return array
 	 */
@@ -526,7 +516,6 @@ class JsonWebToken
 		}
 	}
 
-
 	/**
 	 * Decodes and returns the header segment.
 	 * @param string $header_base64 header segment into base64 enctyption
@@ -535,9 +524,8 @@ class JsonWebToken
 	 */
 	protected function decodeHeader($header_base64)
 	{
-		return (array)$this->jsonDecode( $this->base64Decode( $header_base64 ) );
+		return (array)$this->jsonDecode( $this->base64urlDecode( $header_base64 ) );
 	}
-
 
 	/**
 	 * Decodes and returns the payload segment.
@@ -547,7 +535,7 @@ class JsonWebToken
 	 */
 	protected function decodePayload($payload_base64)
 	{
-		return (array)$this->jsonDecode( $this->base64Decode( $payload_base64 ) );
+		return (array)$this->jsonDecode( $this->base64urlDecode( $payload_base64 ) );
 	}
 
 	/**
@@ -558,9 +546,8 @@ class JsonWebToken
 	 */
 	protected function decodeSignature($signature_base64)
 	{
-		return $this->base64Decode($signature_base64);
+		return $this->base64urlDecode($signature_base64);
 	}
-
 
 	/**
 	 * Verifies the header of JWT.
@@ -601,15 +588,10 @@ class JsonWebToken
 		return true;
 	}
 
-
-
-
     /**
      * Verifies the signature in JWT token.
 	 * Returns TRUE if the signature is correct. Otherwise returns FALSE.
-     *
      * @param string $key Secret key or public key content for openssl.
-     *
      * @return bool
      * @throws JsonWebTokenException
      */
@@ -620,12 +602,12 @@ class JsonWebToken
 
 		if(is_null($alg))
 		{
-			throw new Exception('Signature encryption algorithm is undefined.');
+			throw new JsonWebTokenException('Signature encryption algorithm is undefined.');
 		}
 
         if(!isset($this->supported_algs[$alg]))
 		{
-            throw new Exception('Signature encryption algorithm not supported.');
+            throw new JsonWebTokenException('Signature encryption algorithm not supported.');
         }
 
 		list($function, $algorithm) = $this->supported_algs[$alg];
@@ -735,15 +717,11 @@ class JsonWebToken
 		return in_array($aud, $this->getAudience());
 	}
 
-
-
     /**
 	 * Signs the string with an encryption algorithm.
-	 *
      * @param string $msg The message to sign
      * @param string $key The secret key or private key content for openssl
      * @param string $alg The signing algorithm. See constantss ALG_.
-     *
      * @return string Signature. For openssl signature is binary data!
      * @throws JsonWebTokenException
      */
@@ -751,7 +729,7 @@ class JsonWebToken
     {
         if(is_null($alg))
 		{
-			throw new Exception('Signature encryption algorithm is undefined.');
+			throw new JsonWebTokenException('Signature encryption algorithm is undefined.');
 		}
 
 		if(!isset($this->supported_algs[$alg]))
@@ -797,8 +775,8 @@ class JsonWebToken
 	 */
 	protected function encryptedMessage()
 	{
-		$header_base64  = $this->base64Encode( $this->jsonEncode($this->header) );
-		$payload_base64 = $this->base64Encode( $this->jsonEncode($this->payload) );
+		$header_base64  = $this->base64urlEncode( $this->jsonEncode($this->header) );
+		$payload_base64 = $this->base64urlEncode( $this->jsonEncode($this->payload) );
 
 		return $header_base64.".".$payload_base64;
 	}
@@ -816,7 +794,7 @@ class JsonWebToken
 		$msg = $this->encryptedMessage();
 		$alg = $this->getAlgorithm();
 		$signature = $this->sign($msg, $key, $alg);
-		$signature_base64 = $this->base64Encode($signature);
+		$signature_base64 = $this->base64urlEncode($signature);
 		return $msg.".".$signature_base64;
 	}
 
@@ -832,8 +810,6 @@ class JsonWebToken
 			'signature' => $this->signature,
 		);
 	}
-
-
 }
 
 
