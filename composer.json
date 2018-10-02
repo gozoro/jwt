@@ -1,0 +1,21 @@
+{
+	"name": "gozoro/jwt",
+	"description": "A simple PHP class to encode and decode JSON Web Tokens (JWT), conforming to RFC 7519.",
+	"keywords": ["JWT","JsonWebToken", "RFC7519"],
+	"homepage": "https://github.com/gozoro/jwt",
+	"type": "library",
+	"license": "MIT",
+	"authors": [
+		{
+			"name": "Gozoro",
+			"email": "gozoro@yandex.ru"
+		}
+	],
+	"require": {
+	},
+	"autoload": {
+		"psr-4": {
+			"gozoro\\jwt\\": "src"
+		}
+	}
+}
