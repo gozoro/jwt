@@ -448,7 +448,7 @@ class JsonWebToken
 
 		if($decodedString === false)
 		{
-			throw new JsonWebTokenException('Dencoding to Base64 failed.');
+			throw new JsonWebTokenException('Decoding to Base64 failed.');
 		}
 		else
 		{
