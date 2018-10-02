@@ -788,7 +788,6 @@ class JsonWebToken
 	 */
 	public function create($key)
 	{
-
 		$this->payload['iat'] = time();
 
 		$msg = $this->encryptedMessage();
