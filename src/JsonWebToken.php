@@ -809,6 +809,23 @@ class JsonWebToken
 			'signature' => $this->signature,
 		);
 	}
+
+	/**
+	 * Returns decoded object JWT or FALSE.
+	 * @param string $jwtstr JWT string
+	 * @return \static|boolean
+	 */
+	static public function decode($jwtstr)
+	{
+		try
+		{
+			return new static($jwtstr);
+		}
+		catch(JsonWebTokenException $e)
+		{
+			return false;
+		}
+	}
 }
 
 
