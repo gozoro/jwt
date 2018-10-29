@@ -2,6 +2,9 @@
 
 namespace gozoro\jwt;
 
+use gozoro\jwt\JsonWebTokenException;
+use gozoro\jwt\JsonWebTokenEncodeException;
+use gozoro\jwt\JsonWebTokenDecodeException;
 
 
 /**
@@ -105,9 +108,9 @@ class JsonWebToken
 		{
 			list($header_base64, $payload_base64, $signature_base64) = $this->explode($jwt);
 
-			$this->header    = $this->decodeHeader($header_base64);
-			$this->payload   = $this->decodePayload($payload_base64);
-			$this->signature = $this->decodeSignature($signature_base64);
+			$this->header           = $this->decodeHeader($header_base64);
+			$this->payload          = $this->decodePayload($payload_base64);
+			$this->signature        = $this->decodeSignature($signature_base64);
 		}
 	}
 
@@ -116,7 +119,7 @@ class JsonWebToken
 	 * from the list of supported algorithms.
 	 * @param string $alg
 	 * @return static
-	 * @throws JsonWebTokenException
+	 * @throws JsonWebTokenEncodeException
 	 */
 	public function setAlgorithm($alg)
 	{
@@ -126,7 +129,7 @@ class JsonWebToken
 		}
 		else
 		{
-			throw new JsonWebTokenException("Undefined algorithm [$alg].");
+			throw new JsonWebTokenEncodeException("Undefined algorithm [$alg].");
 		}
 
 		return $this;
@@ -135,7 +138,6 @@ class JsonWebToken
 	/**
 	 * Returns the encryption algorithm of the signature.
 	 * @return string
-	 * @throws JsonWebTokenException
 	 */
 	public function getAlgorithm()
 	{
@@ -153,13 +155,14 @@ class JsonWebToken
 	 * Sets date and time on which the JWT will start to be accepted for processing (payload[nbf]).
 	 * @param string $date
 	 * @return static
+	 * @throws JsonWebTokenEncodeException
 	 */
 	public function setDateBegin($date)
 	{
 		$ts = strtotime($date);
 		if($ts === false)
 		{
-			throw new JsonWebTokenException("Invalid date [$date]");
+			throw new JsonWebTokenEncodeException("Invalid date [$date]");
 		}
 		else
 		{
@@ -173,7 +176,6 @@ class JsonWebToken
 	 * Returns date and time on which the JWT will start to be accepted for processing (payload[nbf]).
 	 * @param string $format The format of the outputted date string (look function date())
 	 * @return string
-	 * @throws JsonWebTokenException
 	 */
 	public function getDateBegin($format = 'Y-m-d H:i:s')
 	{
@@ -192,14 +194,14 @@ class JsonWebToken
 	 * Sets date and time on which the JWT will finish to be accepted for processing (payload[exp]).
 	 * @param string $date
 	 * @return static
-	 * @throws JsonWebTokenException
+	 * @throws JsonWebTokenEncodeException
 	 */
 	public function setDateEnd($date)
 	{
 		$ts = strtotime($date);
 		if($ts === false)
 		{
-			throw new JsonWebTokenException("Invalid date [$date]");
+			throw new JsonWebTokenEncodeException("Invalid date [$date]");
 		}
 		else
 		{
@@ -232,7 +234,7 @@ class JsonWebToken
 	 * Sets payload[nbf] and payload[exp] automatically.
 	 * @param int $duration
 	 * @return static
-	 * @throws JsonWebTokenException
+	 * @throws JsonWebTokenEncodeException
 	 */
 	public function setDuration($duration)
 	{
@@ -251,7 +253,7 @@ class JsonWebToken
 		}
 		else
 		{
-			throw new JsonWebTokenException("Invalid value of token duration [$duration] sec.");
+			throw new JsonWebTokenEncodeException("Invalid value of token duration [$duration] sec.");
 		}
 
 		return $this;
@@ -270,10 +272,10 @@ class JsonWebToken
 
 			$duration = $exp - $nbf;
 
-			if($duration > 0)
+			if($duration >= 0)
 				return $duration;
 			else
-				throw new JsonWebTokenException("Invalid duration value [$duration].");
+				return null;
 		}
 		else
 		{
@@ -422,7 +424,7 @@ class JsonWebToken
         $base64 = base64_encode($input);
 		if($base64 === false)
 		{
-			throw new JsonWebTokenException('Encoding to Base64 failed.');
+			throw new JsonWebTokenEncodeException('Encoding to Base64 failed.');
 		}
 		else
 		{
@@ -448,7 +450,7 @@ class JsonWebToken
 
 		if($decodedString === false)
 		{
-			throw new JsonWebTokenException('Decoding to Base64 failed.');
+			throw new JsonWebTokenDecodeException('Decoding to Base64 failed.');
 		}
 		else
 		{
@@ -460,7 +462,7 @@ class JsonWebToken
      * Encodes an array into a JSON string.
      * @param array $arr input array
      * @return string JSON string
-	 * @throws JsonWebTokenException
+	 * @throws JsonWebTokenEncodeException
      */
     protected function jsonEncode($arr)
     {
@@ -469,7 +471,7 @@ class JsonWebToken
 
 		if($json === false)
 		{
-			throw new JsonWebTokenException('Array cannot be encoded into JSON (json_last_error='.json_last_error().').');
+			throw new JsonWebTokenEncodeException('Array cannot be encoded into JSON (json_last_error='.json_last_error().').');
 		}
 		else
 		{
@@ -481,7 +483,7 @@ class JsonWebToken
      * Decodes a JSON string into an associative array.
      * @param string $json JSON string
      * @return array
-     * @throws JsonWebTokenException
+     * @throws JsonWebTokenDecodeException
      */
     protected function jsonDecode($json)
     {
@@ -489,7 +491,7 @@ class JsonWebToken
 
 		if ($arr === null)
 		{
-            throw new JsonWebTokenException('JSON cannot be decoded (json_last_error='.json_last_error().').');
+            throw new JsonWebTokenDecodeException('JSON cannot be decoded (json_last_error='.json_last_error().').');
         }
 		else
 		{
@@ -501,6 +503,7 @@ class JsonWebToken
 	 * Splits the token into segments.
 	 * @param string $jwt JWT token
 	 * @return array
+	 * @throws JsonWebTokenDecodeException
 	 */
 	protected function explode($jwt)
 	{
@@ -512,7 +515,7 @@ class JsonWebToken
 		}
 		else
 		{
-			throw new JsonWebTokenException('Wrong number of JWT segments.');
+			throw new JsonWebTokenDecodeException('Wrong number of JWT segments.');
 		}
 	}
 
@@ -520,7 +523,7 @@ class JsonWebToken
 	 * Decodes and returns the header segment.
 	 * @param string $header_base64 header segment into base64 enctyption
 	 * @return array
-	 * @throws JsonWebTokenException
+	 * @throws JsonWebTokenDecodeException
 	 */
 	protected function decodeHeader($header_base64)
 	{
@@ -531,7 +534,7 @@ class JsonWebToken
 	 * Decodes and returns the payload segment.
 	 * @param string $payload_base64 payload segment into base64 enctyption
 	 * @return array
-	 * @throws JsonWebTokenException
+	 * @throws JsonWebTokenDecodeException
 	 */
 	protected function decodePayload($payload_base64)
 	{
@@ -542,7 +545,7 @@ class JsonWebToken
 	 * Decodes and returns the signature segment.
 	 * @param string $signature_base64 signature segment into base64 enctyption
 	 * @return string
-	 * @throws JsonWebTokenException
+	 * @throws JsonWebTokenDecodeException
 	 */
 	protected function decodeSignature($signature_base64)
 	{
@@ -593,7 +596,7 @@ class JsonWebToken
 	 * Returns TRUE if the signature is correct. Otherwise returns FALSE.
      * @param string $key Secret key or public key content for openssl.
      * @return bool
-     * @throws JsonWebTokenException
+     * @throws JsonWebTokenDecodeException
      */
 	public function verifySignature($key)
 	{
@@ -602,17 +605,25 @@ class JsonWebToken
 
 		if(is_null($alg))
 		{
-			throw new JsonWebTokenException('Signature encryption algorithm is undefined.');
+			throw new JsonWebTokenDecodeException('Signature encryption algorithm is undefined.');
 		}
 
         if(!isset($this->supported_algs[$alg]))
 		{
-            throw new JsonWebTokenException('Signature encryption algorithm not supported.');
+            throw new JsonWebTokenDecodeException('Signature encryption algorithm not supported.');
         }
 
 		list($function, $algorithm) = $this->supported_algs[$alg];
 
-		$msg = $this->encryptedMessage();
+
+		try
+		{
+			$msg = $this->encryptedMessage();
+		}
+		catch(JsonWebTokenEncodeException $e )
+		{
+			throw new JsonWebTokenDecodeException($e->getMessage());
+		}
 
 
 		if($function == 'hash_hmac')
@@ -626,7 +637,7 @@ class JsonWebToken
 
 			if(!$public_key)
 			{
-				throw new JsonWebTokenException('OpenSSL error: ' . openssl_error_string() );
+				throw new JsonWebTokenDecodeException('OpenSSL error: ' . openssl_error_string() );
 			}
 
 			$success = openssl_verify($msg, $signature, $public_key, $algorithm);
@@ -639,11 +650,11 @@ class JsonWebToken
 			{
 				return false;
 			}
-			throw new JsonWebTokenException('OpenSSL error: ' . openssl_error_string() );
+			throw new JsonWebTokenDecodeException('OpenSSL error: ' . openssl_error_string() );
 		}
 		else
 		{
-			throw new JsonWebTokenException("Invalid algorithm function [$function].");
+			throw new JsonWebTokenDecodeException("Invalid algorithm function [$function].");
 		}
 	}
 
@@ -723,18 +734,18 @@ class JsonWebToken
      * @param string $key The secret key or private key content for openssl
      * @param string $alg The signing algorithm. See constantss ALG_.
      * @return string Signature. For openssl signature is binary data!
-     * @throws JsonWebTokenException
+     * @throws JsonWebTokenEncodeException
      */
     protected function sign($msg, $key, $alg)
     {
         if(is_null($alg))
 		{
-			throw new JsonWebTokenException('Signature encryption algorithm is undefined.');
+			throw new JsonWebTokenEncodeException('Signature encryption algorithm is undefined.');
 		}
 
 		if(!isset($this->supported_algs[$alg]))
 		{
-            throw new JsonWebTokenException('Signature encryption algorithm not supported.');
+            throw new JsonWebTokenEncodeException('Signature encryption algorithm not supported.');
         }
 
 		$key = (string)$key;
@@ -751,7 +762,7 @@ class JsonWebToken
 
 			if(!$private_key)
 			{
-				throw new JsonWebTokenException('OpenSSL error: ' . openssl_error_string() );
+				throw new JsonWebTokenEncodeException('OpenSSL error: ' . openssl_error_string() );
 			}
 
 			$signature = '';
@@ -764,7 +775,7 @@ class JsonWebToken
 			}
 			else
 			{
-				throw new JsonWebTokenException("OpenSSL unable to sign data.");
+				throw new JsonWebTokenEncodeException("OpenSSL unable to sign data.");
 			}
 		}
     }
@@ -814,6 +825,7 @@ class JsonWebToken
 	 * Returns decoded object JWT or FALSE.
 	 * @param string $jwtstr JWT string
 	 * @return \static|boolean
+	 * @throws JsonWebTokenDecodeException
 	 */
 	static public function decode($jwtstr)
 	{
@@ -821,7 +833,7 @@ class JsonWebToken
 		{
 			return new static($jwtstr);
 		}
-		catch(JsonWebTokenException $e)
+		catch(JsonWebTokenDecodeException $e)
 		{
 			return false;
 		}
@@ -830,7 +842,17 @@ class JsonWebToken
 
 
 /**
- * An exception is thrown when the value of a variable differs from the expected value or type.
+ * Json web token root exception
  */
-class JsonWebTokenException extends \Exception{}
+abstract class JsonWebTokenException extends \Exception{}
+
+/**
+ * An exception is thrown during decoding and validation
+ */
+class JsonWebTokenDecodeException extends JsonWebTokenException{}
+
+/**
+ * An exception is thrown when encoding
+ */
+class JsonWebTokenEncodeException extends JsonWebTokenException{}
 
