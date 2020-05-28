@@ -14,6 +14,7 @@ use gozoro\jwt\JsonWebTokenDecodeException;
  *
  * Supported algorithms: HS256, HS512, HS384, RS256, RS384, RS512
  * @author gozoro <gozoro@yandex.ru>
+ * @deprecated since 28.05.2020
  */
 class JsonWebToken
 {
