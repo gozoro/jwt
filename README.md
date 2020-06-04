@@ -93,7 +93,8 @@ catch(\gozoro\jwt\JwtDecodeException $e)
 
 **Validate**
 ```php
-
+try
+{
 	$key    = 'my_secret_key';
 	$leeway = 300;
 
@@ -111,5 +112,10 @@ catch(\gozoro\jwt\JwtDecodeException $e)
 
 	if($jwt->validateTime($leeway)) // $jwt->validateNotBeforeTime($leeway) and $jwt->validateExpirationTime($leeway)
 		print 'Time: OK';
+}
+catch(\gozoro\jwt\JwtValidateException $e)
+{
+	print $e->getMessage();
+}
 ```
 
