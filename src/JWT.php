@@ -10,8 +10,10 @@ use InvalidArgumentException;
  * JSON Web Token implementation by RFC7519<br />
  * https://tools.ietf.org/html/rfc7519<br />
  * https://jwt.io/<br />
+ * https://github.com/gozoro/jwt<br />
  *
- * Supported algorithms: HS256, HS512, HS384, RS256, RS384, RS512
+ * Supported algorithms: HS256, HS512, HS384, RS256, RS384, RS512.
+ * 
  * @author gozoro <gozoro@yandex.ru>
  */
 class JWT
